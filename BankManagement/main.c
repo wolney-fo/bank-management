@@ -10,12 +10,14 @@ struct Client {
 struct Account {
     struct Client holder;
     double balance;
+    double overdraft;
+    const double AUTHORIZED_OVERDRAFT;
 };
 
 int main()
 {
     struct Client currentUser = { "Hammilton", 16 };
-    struct Account currentAccount = { currentUser, 5000.00 };
+    struct Account currentAccount = { currentUser, 5000.00, 1000.00, 1000.00 };
 
     const char LOCAL_CURRENCY[4] = "GBR";
     int option;
@@ -32,17 +34,26 @@ int main()
 
         switch (option) {
         case 1:
-            printf("\n\nYour current balance is: %s %.2f\n\n", LOCAL_CURRENCY, currentAccount.balance);
+            printf("\n\n| Current balance: %s %.2f | Avaliable overdraft: %s %.2f |\n\n", LOCAL_CURRENCY, currentAccount.balance, LOCAL_CURRENCY, currentAccount.overdraft);
             break;
         case 2:
             printf("\n\nWithdrawal\n");
-            printf("| Balance: %s %.2f |\n", LOCAL_CURRENCY, currentAccount.balance);
+            printf("| Balance: %s %.2f | Overdraft: %s %.2f |\n", LOCAL_CURRENCY, currentAccount.balance, LOCAL_CURRENCY, currentAccount.overdraft);
             printf("Value: %s ", LOCAL_CURRENCY);
             scanf_s("%lf", &withdrawal);
             getchar();
 
-            if (withdrawal <= currentAccount.balance) {
-                currentAccount.balance -= withdrawal;
+            // Verify if withdrawal is avaliable
+            if (withdrawal <= currentAccount.balance + currentAccount.overdraft) {
+                
+                // Uses overdraft
+                if (withdrawal <= currentAccount.balance) {
+                    currentAccount.balance -= withdrawal;
+                }
+                else {
+                    currentAccount.overdraft -= (withdrawal - currentAccount.balance);
+                    currentAccount.balance = 0.0;
+                }
                 printf("Successful withdrawal!\n\n");
             }
             else {
@@ -56,7 +67,18 @@ int main()
             scanf_s("%lf", &deposit);
             getchar();
 
-            currentAccount.balance += deposit;
+            // Used overdraft
+            if (currentAccount.overdraft < currentAccount.AUTHORIZED_OVERDRAFT) {
+                currentAccount.overdraft += deposit;
+                double overflow = currentAccount.overdraft - currentAccount.AUTHORIZED_OVERDRAFT;
+                if (overflow > 0) {
+                    currentAccount.balance += overflow;
+                    currentAccount.overdraft -= overflow;
+                }
+            }
+            else {
+                currentAccount.balance += deposit;
+            }
 
             printf("Successful deposit!\n\n");
             break;
