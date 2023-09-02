@@ -1,3 +1,2 @@
 ﻿  main.c
-D:\www\bank-management\BankManagement\main.c(65,20): warning C4129: 'D': unrecognized character escape sequence
   BankManagement.vcxproj -> D:\www\bank-management\BankManagement\x64\Debug\BankManagement.exe
